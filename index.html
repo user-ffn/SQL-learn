@@ -1,0 +1,552 @@
+﻿ <!DOCTYPE html>
+ <html lang="zh-CN">
+ <head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>SQL 基础学习</title>
+ <style>
+ *{box-sizing:border-box;margin:0;padding:0}
+ :root{
+   --bg:#f5f4f0;--surface:#ffffff;--surface2:#eeede8;--text:#1c1c1a;--text2:#5c5c58;--text3:#9c9c96;
+   --border:#dddcd6;--accent:#3d6b4f;--accent-bg:#e8f2ec;--accent-text:#2a5038;
+   --danger:#b83232;--danger-bg:#fdf0f0;--success:#2a5038;--success-bg:#e8f2ec;
+   --code-bg:#f0efe9;--mono:'JetBrains Mono','Fira Code',monospace;--radius:8px;
+ }
+ .dark{
+   --bg:#0f0f0d;--surface:#181816;--surface2:#212120;--text:#deded8;--text2:#8a8a84;--text3:#55554f;
+   --border:#2e2e2a;--accent:#5a9e72;--accent-bg:#0f1f14;--accent-text:#7dc896;
+   --danger:#d46060;--danger-bg:#1a0f0f;--success:#7dc896;--success-bg:#0f1f14;
+   --code-bg:#121210;
+ }
+ body{background:var(--bg);color:var(--text);font-family:'PingFang SC','Microsoft YaHei',system-ui,sans-serif;font-size:15px;line-height:1.6;min-height:100vh;transition:background .25s,color .25s}
+ .app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+ .sidebar{background:var(--surface);border-right:0.5px solid var(--border);padding:16px 0;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;transition:background .25s,transform .3s;z-index:100}
+ .sidebar-header{padding:0 16px 16px;border-bottom:0.5px solid var(--border);margin-bottom:8px}
+ .logo{font-size:15px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:8px}
+ .logo-icon{width:28px;height:28px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:600;flex-shrink:0}
+ .dark-toggle{margin-left:auto;background:none;border:0.5px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;color:var(--text2);font-size:12px;transition:all .15s;white-space:nowrap}
+ .dark-toggle:hover{background:var(--surface2);color:var(--text)}
+ .nav-section{padding:4px 16px;font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:8px;margin-bottom:2px}
+ .nav-item{display:flex;align-items:center;gap:8px;padding:8px 16px;cursor:pointer;font-size:13.5px;color:var(--text2);transition:all .1s;border-left:2px solid transparent}
+ .nav-item:hover{background:var(--surface2);color:var(--text)}
+ .nav-item.active{background:var(--accent-bg);color:var(--accent-text);border-left-color:var(--accent);font-weight:500}
+ .nav-item .done{margin-left:auto;color:var(--accent);font-size:13px}
+ .nav-tag{font-size:10px;color:var(--text3);background:var(--surface2);padding:1px 6px;border-radius:4px;flex-shrink:0;font-family:var(--mono)}
+ .progress-bar{height:2px;background:var(--border);margin:12px 16px 0;border-radius:2px}
+ .progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s}
+ .progress-label{padding:6px 16px 12px;font-size:12px;color:var(--text3)}
+ .sidebar-footer{margin-top:auto;padding:16px;border-top:0.5px solid var(--border)}
+ .reset-btn{width:100%;padding:8px;border-radius:var(--radius);font-size:12.5px;cursor:pointer;background:none;color:var(--text3);border:0.5px solid var(--border);transition:all .15s}
+ .reset-btn:hover{background:var(--surface2);color:var(--danger);border-color:var(--danger)}
+ .main{padding:36px 48px;max-width:860px;min-width:0}
+ .lesson-header{margin-bottom:28px}
+ .lesson-tag{display:inline-block;background:var(--accent-bg);color:var(--accent-text);font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;margin-bottom:10px;letter-spacing:.03em}
+ .lesson-title{font-size:26px;font-weight:500;color:var(--text);margin-bottom:8px}
+ .lesson-desc{color:var(--text2);font-size:14.5px;line-height:1.75}
+ .section{background:var(--surface);border:0.5px solid var(--border);border-radius:12px;padding:24px;margin-bottom:20px;transition:background .25s}
+ .section-title{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
+ .syntax-block{background:var(--code-bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:18px 20px;font-family:var(--mono);font-size:13px;color:var(--text);line-height:1.9;margin-bottom:14px;overflow-x:auto;transition:background .25s}
+ .syntax-block pre{white-space:pre-wrap;word-break:break-all}
+ .kw{color:#3d6b4f;font-weight:600}
+ .dark .kw{color:#5a9e72}
+ .str{color:#9a5c1a}
+ .dark .str{color:#c8843a}
+ .cmt{color:var(--text3);font-style:italic}
+ .explanation{color:var(--text2);font-size:14.5px;line-height:1.85}
+ .explanation code{background:var(--code-bg);padding:2px 7px;border-radius:4px;font-family:var(--mono);font-size:12.5px;color:var(--text);border:0.5px solid var(--border)}
+ .table-wrap{overflow-x:auto;margin:8px 0}
+ table{width:100%;border-collapse:collapse;font-size:13.5px}
+ th{background:var(--surface2);color:var(--text2);font-weight:500;padding:9px 14px;text-align:left;border-bottom:0.5px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+ td{padding:9px 14px;border-bottom:0.5px solid var(--border);color:var(--text)}
+ tr:last-child td{border-bottom:none}
+ tr:hover td{background:var(--surface2)}
+ .multi-table{display:flex;flex-direction:column;gap:20px}
+ .multi-table .mini-title{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:4px}
+ .ex-prompt{background:var(--surface2);border-left:3px solid var(--accent);padding:12px 16px;border-radius:0 var(--radius) var(--radius) 0;margin-bottom:14px;font-size:14px;color:var(--text);line-height:1.7}
+ .sql-editor{width:100%;min-height:80px;background:var(--code-bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;font-family:var(--mono);font-size:13px;color:var(--text);resize:vertical;outline:none;transition:border-color .15s,background .25s;line-height:1.7}
+ .sql-editor:focus{border-color:var(--accent);border-width:1px}
+ .btn-row{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap}
+ .btn{padding:8px 18px;border-radius:var(--radius);font-size:13.5px;font-weight:500;cursor:pointer;transition:all .15s;border:0.5px solid}
+ .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+ .btn-primary:hover{opacity:.85}
+ .btn-ghost{background:none;color:var(--text2);border-color:var(--border)}
+ .btn-ghost:hover{background:var(--surface2)}
+ .btn-sm{font-size:12px;padding:5px 12px}
+ .result-box{margin-top:12px;padding:14px 16px;border-radius:var(--radius);font-size:13.5px;display:none;border:0.5px solid}
+ .result-ok{background:var(--success-bg);border-color:var(--accent);color:var(--success)}
+ .result-err{background:var(--danger-bg);border-color:var(--danger);color:var(--danger)}
+ .result-status{font-weight:500;margin-bottom:8px}
+ .result-table-wrap{overflow-x:auto}
+ .result-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}
+ .result-table th{background:var(--surface2);padding:6px 10px;text-align:left;border-bottom:0.5px solid var(--border);font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--text2)}
+ .result-table td{padding:5px 10px;border-bottom:0.5px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px}
+ .result-table tr:last-child td{border-bottom:none}
+ .result-table .null-cell{color:var(--text3);font-style:italic}
+ .result-compare{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}
+ .result-side{flex:1;min-width:200px}
+ .result-side-title{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+ .hint-btn{font-size:12px;color:var(--text3);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px}
+ .hint-btn:hover{color:var(--text2)}
+ .hint-box{display:none;margin-top:10px;padding:10px 14px;background:var(--surface2);border-radius:var(--radius);font-size:13px;color:var(--text2);font-family:var(--mono);border:0.5px solid var(--border)}
+ .tab-row{display:flex;gap:0;border-bottom:0.5px solid var(--border);margin-bottom:24px;overflow-x:auto}
+ .tab{padding:9px 16px;font-size:13.5px;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-0.5px;transition:all .1s;user-select:none;white-space:nowrap}
+ .tab:hover{color:var(--text)}
+ .tab.active{color:var(--accent-text);border-bottom-color:var(--accent);font-weight:500}
+ .ex-num{font-size:11px;font-weight:500;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em}
+ .ex-block{margin-bottom:28px;padding-bottom:24px;border-bottom:0.5px solid var(--border)}
+ .ex-block:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+ .lesson-nav{display:flex;justify-content:space-between;align-items:center;margin-top:36px;padding-top:20px;border-top:0.5px solid var(--border)}
+ .nav-btn{padding:8px 20px;border-radius:var(--radius);font-size:13.5px;cursor:pointer;transition:all .15s;border:0.5px solid var(--border);background:var(--surface);color:var(--text2)}
+ .nav-btn:hover{background:var(--surface2);color:var(--text)}
+ .nav-btn:disabled{opacity:.3;cursor:default;pointer-events:none}
+ .nav-btn-primary{color:var(--accent-text);border-color:var(--accent)}
+ .loading-db{text-align:center;padding:80px 20px;color:var(--text2)}
+ .loading-db .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px}
+ .menu-btn{display:none;position:fixed;top:12px;left:12px;z-index:200;width:36px;height:36px;border-radius:8px;background:var(--surface);border:0.5px solid var(--border);cursor:pointer;font-size:18px;color:var(--text);align-items:center;justify-content:center;transition:all .15s}
+ .menu-btn:hover{background:var(--surface2)}
+ @keyframes spin{to{transform:rotate(360deg)}}
+ @media(max-width:768px){
+   .menu-btn{display:flex}
+   .app{grid-template-columns:1fr}
+   .sidebar{position:fixed;left:0;top:0;transform:translateX(-100%)}
+   .sidebar.open{transform:translateX(0)}
+   .main{padding:20px 16px 60px}
+   .lesson-title{font-size:22px}
+   .result-compare{flex-direction:column}
+   .multi-table{flex-direction:column}
+ }
+ @media(max-width:480px){
+   .main{padding:16px 12px 60px}
+   .section{padding:16px}
+   .lesson-title{font-size:20px}
+ }
+ </style>
+ </head>
+ <body>
+ <div class="app" id="app">
+   <button class="menu-btn" id="menuBtn" onclick="toggleMenu()">☰</button>
+   <aside class="sidebar" id="sidebar">
+     <div class="sidebar-header">
+       <div class="logo">
+         <div class="logo-icon">S</div>
+         SQL 基础
+         <button class="dark-toggle" onclick="toggleDark()" id="darkBtn">🌙 夜间</button>
+       </div>
+     </div>
+     <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+     <div class="progress-label" id="progressLabel">0 / 7 完成</div>
+     <div class="nav-section">核心语法</div>
+     <div id="navItems"></div>
+     <div class="sidebar-footer">
+       <button class="reset-btn" onclick="resetProgress()">重置进度</button>
+     </div>
+   </aside>
+   <main class="main" id="mainContent">
+     <div class="loading-db" id="loadingDb">
+       <div class="spinner"></div>
+       <div>正在初始化 SQL 引擎...</div>
+     </div>
+   </main>
+ </div>
+ </div>
+ <script src="https://cdn.jsdelivr.net/npm/sql.js@1.11.0/dist/sql-wasm.js"></script>
+ <script>
+ // ====== SQL.js 初始化 ======
+ let SQL = null, db = null, dbReady = false;
+ 
+ async function initDB() {
+   try {
+     SQL = await initSqlJs({ locateFile: f => "https://cdn.jsdelivr.net/npm/sql.js@1.11.0/dist/" + f });
+     db = new SQL.Database();
+     createTables();
+     dbReady = true;
+     document.getElementById("loadingDb").style.display = "none";
+     renderNav();
+     renderLesson();
+     checkSysDark();
+   } catch (e) {
+     document.getElementById("loadingDb").innerHTML = "<div style='color:var(--danger)'>⚠️ SQL 引擎加载失败，请刷新页面重试。</div>";
+   }
+ }
+ 
+ function createTables() {
+   db.run("CREATE TABLE world (name TEXT, continent TEXT, population INTEGER, gdp INTEGER)");
+   for (const c of [
+     ["China","Asia",1400000000,14722731],
+     ["United States","America",331000000,20937000],
+     ["Japan","Asia",126000000,4937422],
+     ["Germany","Europe",83000000,3806000],
+     ["France","Europe",67000000,2716000],
+     ["India","Asia",1380000000,2870000],
+     ["Finland","Europe",5500000,269000],
+     ["Iceland","Europe",370000,24000],
+     ["Cuba","America",11300000,100000],
+     ["Chad","Africa",16400000,11000],
+     ["Iran","Asia",85000000,250000],
+     ["Togo","Africa",8300000,7000],
+     ["Angola","Africa",33000000,66000],
+     ["Bahamas","America",400000,13000],
+     ["Madagascar","Africa",28000000,14000]
+   ]) db.run("INSERT INTO world VALUES (?,?,?,?)", c);
+   db.run("CREATE TABLE users (id INTEGER, name TEXT)");
+   db.run("INSERT INTO users VALUES (1,'Alice'),(2,'Bob'),(3,'Charlie')");
+   db.run("CREATE TABLE orders (id INTEGER, user_id INTEGER, amount INTEGER)");
+   db.run("INSERT INTO orders VALUES (1,1,250),(2,1,180),(3,2,320)");
+ }
+ 
+ // ====== SQL 执行与比较 ======
+ function execSQL(sql) {
+   const r = db.exec(sql);
+   return r && r.length ? { columns: r[0].columns, values: r[0].values } : { columns: [], values: [] };
+ }
+ 
+ function compareResults(a, b) {
+   if (a.columns.length !== b.columns.length) return false;
+   for (let i = 0; i < a.columns.length; i++)
+     if (a.columns[i].toLowerCase() !== b.columns[i].toLowerCase()) return false;
+   const ka = a.values.map(r => JSON.stringify(r)).sort();
+   const kb = b.values.map(r => JSON.stringify(r)).sort();
+   return JSON.stringify(ka) === JSON.stringify(kb);
+ }
+ 
+ function renderTable(el, cols, vals) {
+   if (!el) return;
+   if (!cols.length) { el.innerHTML = "<span style='color:var(--text3)'>（无结果）</span>"; return; }
+   let h = "<table class='result-table'><tr>" + cols.map(c => "<th>" + c.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;") + "</th>").join("") + "</tr>";
+   for (const row of vals) {
+     h += "<tr>" + row.map(v => v === null ? "<td class='null-cell'>NULL</td>" : "<td>" + String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;") + "</td>").join("") + "</tr>";
+   }
+   el.innerHTML = h + "</table>";
+ }
+ 
+ // ====== 课程数据 ======
+ const lessons = [
+   { id:"select", tag:"Day 1", title:"SELECT — 查询数据",
+     desc:"SELECT 是 SQL 最基本的指令，用来从数据表中取出你需要的字段。几乎所有的查询都以 SELECT 开始。",
+     tabs:["语法说明","示例数据","练习"],
+     content:{
+       syntax:`<span class="kw">SELECT</span> 字段1, 字段2\n<span class="kw">FROM</span> 数据表\n\n<span class="cmt">-- 取出所有字段（实践中建议写明字段名）</span>\n<span class="kw">SELECT</span> *\n<span class="kw">FROM</span> 数据表`,
+       explanation:'<code>SELECT</code> 后面写你要的字段名，<code>FROM</code> 后面写数据表名称。<br><br>用 <code>*</code> 代表「所有字段」。实际工作中建议写出具体字段名，性能更好。<br><br>SQL 语句不区分大小写，但关键字习惯用大写，字段名小写。',
+       sampleData:[
+         {name:"China",continent:"Asia",population:1400000000,gdp:14722731},
+         {name:"United States",continent:"America",population:331000000,gdp:20937000},
+         {name:"Japan",continent:"Asia",population:126000000,gdp:4937422},
+         {name:"Germany",continent:"Europe",population:83000000,gdp:3806000},
+         {name:"France",continent:"Europe",population:67000000,gdp:2716000}
+       ],
+       exercises:[
+         {prompt:"从 world 表中查询所有国家的 name 和 continent。",answer:"select name, continent from world",hint:"SELECT name, continent FROM world"},
+         {prompt:"查询 world 表的所有字段。",answer:"select * from world",hint:"SELECT * FROM world"},
+         {prompt:"查询 world 表的 name 和 gdp 两个字段。",answer:"select name, gdp from world",hint:"SELECT name, gdp FROM world"}
+       ]
+     }
+   },
+   { id:"where", tag:"Day 1", title:"WHERE — 筛选条件",
+     desc:"WHERE 让你加上筛选条件，只取出符合条件的数据行，是最常用的过滤手段。",
+     tabs:["语法说明","示例数据","练习"],
+     content:{
+       syntax:'<span class="kw">SELECT</span> name, population\n<span class="kw">FROM</span> world\n<span class="kw">WHERE</span> continent = <span class="str">\'Asia\'</span>;\n\n<span class="cmt">-- 数字条件不需要引号</span>\n<span class="kw">SELECT</span> name\n<span class="kw">FROM</span> world\n<span class="kw">WHERE</span> population > 100000000;\n\n<span class="cmt">-- 多个条件用 AND / OR 连接</span>\n<span class="kw">WHERE</span> continent = <span class="str">\'Asia\'</span> <span class="kw">AND</span> population > 100000000',
+       explanation:'<code>WHERE</code> 后面写条件，常用运算符：<br><br><code>=</code> 等于 &nbsp; <code>!=</code> 或 <code>&lt;&gt;</code> 不等于<br><code>&gt;</code> 大于 &nbsp; <code>&lt;</code> 小于 &nbsp; <code>&gt;=</code> &nbsp; <code>&lt;=</code><br><br>字符串值要用单引号，数字直接写。多个条件用 AND（两个都要）或 OR（其中一个符合即可）连接。',
+       sampleData:[
+         {name:"China",continent:"Asia",population:1400000000},
+         {name:"United States",continent:"America",population:331000000},
+         {name:"Japan",continent:"Asia",population:126000000},
+         {name:"Germany",continent:"Europe",population:83000000},
+         {name:"India",continent:"Asia",population:1380000000}
+       ],
+       exercises:[
+         {prompt:"找出 continent 是 'Asia' 的所有国家名称。",answer:"select name from world where continent = 'Asia'",hint:"SELECT name FROM world WHERE continent = 'Asia'"},
+         {prompt:"找出 population 超过 500000000 的国家名称。",answer:"select name from world where population > 500000000",hint:"SELECT name FROM world WHERE population > 500000000"},
+         {prompt:"找出 continent 是 'Asia' 且人口超过 1000000000 的国家。",answer:"select name from world where continent = 'Asia' and population > 1000000000",hint:"WHERE continent = 'Asia' AND population > 1000000000"}
+       ]
+     }
+   },
+   { id:"order", tag:"Day 2", title:"ORDER BY — 排序",
+     desc:"ORDER BY 让查询结果按指定字段排序。默认升序 ASC（小→大），改为降序用 DESC（大→小）。",
+     tabs:["语法说明","示例数据","练习"],
+     content:{
+       syntax:'<span class="cmt">-- 人口从多到少</span>\n<span class="kw">SELECT</span> name, population\n<span class="kw">FROM</span> world\n<span class="kw">ORDER BY</span> population <span class="kw">DESC</span>;\n\n<span class="cmt">-- 多字段排序：先按洲，再按名字</span>\n<span class="kw">SELECT</span> name, continent\n<span class="kw">FROM</span> world\n<span class="kw">ORDER BY</span> continent, name <span class="kw">ASC</span>;',
+       explanation:'<code>ASC</code>（Ascending）升序：1→9，A→Z，最旧→最新。默认值，可省略不写。<br><code>DESC</code>（Descending）降序：9→1，Z→A，最新→最旧。<br><br>可同时对多个字段排序，用逗号分隔。先按第一个字段，遇到相同值再按第二个字段排。',
+       sampleData:[
+         {name:"China",continent:"Asia",population:1400000000},
+         {name:"United States",continent:"America",population:331000000},
+         {name:"Japan",continent:"Asia",population:126000000},
+         {name:"Germany",continent:"Europe",population:83000000},
+         {name:"France",continent:"Europe",population:67000000},
+         {name:"India",continent:"Asia",population:1380000000}
+       ],
+       exercises:[
+         {prompt:"查询所有国家的 name 和 population，按人口从多到少排序。",answer:"select name, population from world order by population desc",hint:"ORDER BY population DESC"},
+         {prompt:"查询 name 和 continent，按国家名称字母升序排列。",answer:"select name, continent from world order by name",hint:"ORDER BY name（默认 ASC）"},
+         {prompt:"查询所有字段，先按洲排序，同一洲内再按人口降序排列。",answer:"select * from world order by continent, population desc",hint:"ORDER BY continent, population DESC"}
+       ]
+     }
+   },
+   { id:"like", tag:"Day 2", title:"LIKE — 模糊搜索",
+     desc:"LIKE 搭配通配符做模糊匹配。% 代表任意长度的任意字符，_ 代表刚好一个字符。",
+     tabs:["语法说明","通配符对照","练习"],
+     content:{
+       syntax:'<span class="kw">WHERE</span> name <span class="kw">LIKE</span> <span class="str">\'C%\'</span>       <span class="cmt">-- C 开头</span>\n<span class="kw">WHERE</span> name <span class="kw">LIKE</span> <span class="str">\'%land\'</span>    <span class="cmt">-- land 结尾</span>\n<span class="kw">WHERE</span> name <span class="kw">LIKE</span> <span class="str">\'%an%\'</span>     <span class="cmt">-- 包含 an</span>\n<span class="kw">WHERE</span> name <span class="kw">LIKE</span> <span class="str">\'____\'</span>      <span class="cmt">-- 刚好 4 个字符</span>\n<span class="kw">WHERE</span> name <span class="kw">LIKE</span> <span class="str">\'_n%\'</span>      <span class="cmt">-- 第二个字母是 n</span>',
+       explanation:'<code>%</code> = 任意长度的任意字符（包含 0 个字符）<br><code>_</code> = 刚好一个任意字符<br><br><code>=</code> vs <code>LIKE</code>：<code>=</code> 是精确匹配，必须完全一样；<code>LIKE</code> 是模糊匹配，搭配通配符使用。',
+       sampleData:[
+         {写法:"'C%'", 含义:"C 开头", 范例:"China, Chad, Cuba"},
+         {写法:"'%land'", 含义:"land 结尾", 范例:"Finland, Iceland"},
+         {写法:"'%an%'", 含义:"包含 an", 范例:"Japan, France"},
+         {写法:"'____'", 含义:"刚好 4 个字符", 范例:"Cuba, Togo, Iran"},
+         {写法:"'_n%'", 含义:"第二个字母是 n", 范例:"India, Angola"},
+         {写法:"'%a%a%a%'", 含义:"包含至少 3 个 a", 范例:"Bahamas, Madagascar"}
+       ],
+       exercises:[
+         {prompt:"找出名字以 'C' 开头的国家。",answer:"select name from world where name like 'C%'",hint:"WHERE name LIKE 'C%'"},
+         {prompt:"找出名字以 'land' 结尾的国家。",answer:"select name from world where name like '%land'",hint:"WHERE name LIKE '%land'"},
+         {prompt:"找出名字刚好 4 个字母的国家。",answer:"select name from world where name like '____'",hint:"WHERE name LIKE '____'（四个下划线）"},
+         {prompt:"找出第二个字母是 n 的国家。",answer:"select name from world where name like '_n%'",hint:"WHERE name LIKE '_n%'"}
+       ]
+     }
+   },
+   { id:"groupby", tag:"Day 3", title:"GROUP BY + 聚合函数",
+     desc:"GROUP BY 配合聚合函数使用，对数据进行分组统计。这是面试最常考的 SQL 语法之一。",
+     tabs:["语法说明","聚合函数","练习"],
+     content:{
+       syntax:'<span class="cmt">-- 统计每个洲的国家数量</span>\n<span class="kw">SELECT</span> continent, <span class="kw">COUNT</span>(*) <span class="kw">AS</span> 数量\n<span class="kw">FROM</span> world\n<span class="kw">GROUP BY</span> continent;\n\n<span class="cmt">-- 计算每个洲的总人口，从多到少</span>\n<span class="kw">SELECT</span> continent, <span class="kw">SUM</span>(population) <span class="kw">AS</span> total_pop\n<span class="kw">FROM</span> world\n<span class="kw">GROUP BY</span> continent\n<span class="kw">ORDER BY</span> total_pop <span class="kw">DESC</span>;',
+       explanation:'聚合函数把多行数据合并成一个值：<br><br><code>COUNT(*)</code> 计算行数（含 NULL）<br><code>COUNT(字段)</code> 计算非 NULL 的行数<br><code>SUM(字段)</code> 加总<br><code>AVG(字段)</code> 平均值<br><code>MAX(字段)</code> 最大值<br><code>MIN(字段)</code> 最小值<br><br><code>AS</code> 给字段取别名，让结果更易读。',
+       sampleData:[
+         {函数:"COUNT(*)", 说明:"计算总行数", 范例:"15 行"},
+         {函数:"SUM(population)", 说明:"人口加总", 范例:"对全表所有国家求和"},
+         {函数:"AVG(population)", 说明:"人口平均", 范例:"对所有国家取平均值"},
+         {函数:"MAX(gdp)", 说明:"最大 GDP", 范例:"所有国家中 GDP 最大值"},
+         {函数:"MIN(gdp)", 说明:"最小 GDP", 范例:"所有国家中 GDP 最小值"}
+       ],
+       exercises:[
+         {prompt:"统计每个 continent 有几个国家（用 COUNT）。",answer:"select continent, count(*) from world group by continent",hint:"SELECT continent, COUNT(*) FROM world GROUP BY continent"},
+         {prompt:"计算每个 continent 的总人口（用 SUM），结果取别名 total_pop。",answer:"select continent, sum(population) as total_pop from world group by continent",hint:"SELECT continent, SUM(population) AS total_pop FROM world GROUP BY continent"},
+         {prompt:"找出每个 continent 中人口最多的国家的人口数（用 MAX）。",answer:"select continent, max(population) from world group by continent",hint:"SELECT continent, MAX(population) FROM world GROUP BY continent"}
+       ]
+     }
+   },
+   { id:"having", tag:"Day 3", title:"HAVING — 聚合后筛选",
+     desc:"HAVING 在 GROUP BY 之后过滤结果。WHERE 在分组前过滤，HAVING 在分组后过滤，这是最容易混淆的地方。",
+     tabs:["语法说明","WHERE vs HAVING","练习"],
+     content:{
+       syntax:'<span class="cmt">-- 找出国家数超过 1 个的洲</span>\n<span class="kw">SELECT</span> continent, <span class="kw">COUNT</span>(*) <span class="kw">AS</span> cnt\n<span class="kw">FROM</span> world\n<span class="kw">GROUP BY</span> continent\n<span class="kw">HAVING</span> <span class="kw">COUNT</span>(*) > 1;\n\n<span class="cmt">-- SQL 执行顺序</span>\n<span class="kw">FROM</span> → <span class="kw">WHERE</span> → <span class="kw">GROUP BY</span> → <span class="kw">HAVING</span> → <span class="kw">SELECT</span> → <span class="kw">ORDER BY</span>',
+       explanation:'记忆口诀：<code>WHERE</code> 过滤原始行，<code>HAVING</code> 过滤分组结果。<br><br>例如「找出国家超过 1 个的洲」，要用 HAVING，因为先分组才知道每个洲有几个国家。<br><br>SQL 的执行顺序：FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY。',
+       sampleData:[
+         {情况:"过滤单行数据（如 continent = Asia）", 用:"WHERE", 例子:"WHERE continent = 'Asia'"},
+         {情况:"过滤聚合结果（如 COUNT > 2）", 用:"HAVING", 例子:"HAVING COUNT(*) > 2"},
+         {情况:"两者都要用", 用:"都用", 例子:"WHERE continent != 'Europe'\\nHAVING COUNT(*) > 1"}
+       ],
+       exercises:[
+         {prompt:"找出总人口超过 500000000 的洲（使用 HAVING）。",answer:"select continent, sum(population) from world group by continent having sum(population) > 500000000",hint:"HAVING SUM(population) > 500000000"},
+         {prompt:"找出国家数量超过 1 个的洲。",answer:"select continent, count(*) from world group by continent having count(*) > 1",hint:"HAVING COUNT(*) > 1"},
+         {prompt:"只看 Asia 和 Europe，统计各自的国家数，且只显示国家数 >= 1 的结果。",answer:"select continent, count(*) from world where continent in ('Asia','Europe') group by continent having count(*) >= 1",hint:"WHERE continent IN ('Asia','Europe') ... HAVING COUNT(*) >= 1"}
+       ]
+     }
+   },
+   { id:"join", tag:"Day 5", title:"JOIN — 连接数据表",
+     desc:"JOIN 让你把两个数据表合并查询。INNER JOIN 取交集，LEFT JOIN 保留左表所有数据。",
+     tabs:["语法说明","类型对比","练习"],
+     content:{
+       syntax:'<span class="cmt">-- INNER JOIN：两表都有才显示</span>\n<span class="kw">SELECT</span> orders.id, users.name, orders.amount\n<span class="kw">FROM</span> orders\n<span class="kw">INNER JOIN</span> users\n  <span class="kw">ON</span> orders.user_id = users.id;\n\n<span class="cmt">-- LEFT JOIN：左表全部保留，右表没有填 NULL</span>\n<span class="kw">SELECT</span> users.name, orders.id\n<span class="kw">FROM</span> users\n<span class="kw">LEFT JOIN</span> orders\n  <span class="kw">ON</span> users.id = orders.user_id;',
+       explanation:'<code>INNER JOIN</code>：只保留两张表都能配对到的数据（交集）。<br><code>LEFT JOIN</code>：左表的所有数据都保留，右表没有配对的填 NULL。<br><code>RIGHT JOIN</code>：右表全保留（不常用，通常改写成 LEFT JOIN）。<br><br><code>ON</code> 后面写两张表的关联条件，通常是「主键 = 外键」。',
+       sampleData:[
+         {类型:"INNER JOIN", 结果:"两表都有匹配才显示", 适用:"查有效关联的数据"},
+         {类型:"LEFT JOIN", 结果:"左表全部 + 右表有就显示", 适用:"查所有用户及订单（无订单也显示）"},
+         {类型:"RIGHT JOIN", 结果:"右表全部 + 左表有就显示", 适用:"不常用，通常改写成 LEFT JOIN"}
+       ],
+       exercises:[
+         {prompt:"有 orders 表（含 id, user_id, amount）和 users 表（含 id, name），用 INNER JOIN 查询每笔订单的用户名称和金额。",answer:"select users.name, orders.amount from orders inner join users on orders.user_id = users.id",hint:"FROM orders INNER JOIN users ON orders.user_id = users.id"},
+         {prompt:"用 LEFT JOIN 查询所有用户的名称及订单 id（没有订单的用户也要显示）。",answer:"select users.name, orders.id from users left join users on users.id = orders.user_id",hint:"FROM users LEFT JOIN orders ON users.id = orders.user_id"},
+         {prompt:"用 INNER JOIN 查询有订单的用户名称，并统计每个用户的订单数量。",answer:"select users.name, count(orders.id) from users inner join orders on users.id = orders.user_id group by users.name",hint:"... GROUP BY users.name"}
+       ]
+     }
+   }
+ ];
+ 
+ // Fix JOIN exercise 2 answer
+ lessons[6].content.exercises[1].answer = "select users.name, orders.id from users left join orders on users.id = orders.user_id";
+ 
+ let completed = [];
+ try { completed = [...new Set(JSON.parse(localStorage.getItem("sql_done") || "[]"))]; } catch(e) {}
+ let current = 0, isDark = false, activeTab = 0;
+ 
+ // ====== 主题 ======
+ function checkSysDark() {
+   if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+     isDark = true;
+     document.getElementById("app").classList.add("dark");
+     document.getElementById("darkBtn").textContent = "☀️ 日间";
+   }
+ }
+ function toggleDark() {
+   isDark = !isDark;
+   document.getElementById("app").classList.toggle("dark", isDark);
+   document.getElementById("darkBtn").textContent = isDark ? "☀️ 日间" : "🌙 夜间";
+ }
+ function toggleMenu() {
+   document.getElementById("sidebar").classList.toggle("open");
+ }
+ 
+ // ====== 导航 ======
+ function setLesson(i) {
+   current = i; activeTab = 0;
+   document.getElementById("sidebar").classList.remove("open");
+   renderNav(); renderLesson(); window.scrollTo(0, 0);
+ }
+ function switchTab(i) { activeTab = i; renderLesson(); }
+ function toggleHint(id) {
+   const e = document.getElementById(id);
+   if (e) e.style.display = e.style.display === "block" ? "none" : "block";
+ }
+ function resetProgress() {
+   if (confirm("确定要清除所有学习进度吗？")) {
+     completed = [];
+     localStorage.removeItem("sql_done");
+     renderNav();
+   }
+ }
+ 
+ // ====== 渲染 ======
+ function renderNav() {
+   const nav = document.getElementById("navItems");
+   if (!nav) return;
+   nav.innerHTML = lessons.map((l, i) =>
+     `<div class="nav-item${i === current ? " active" : ""}" onclick="setLesson(${i})">
+       <span class="nav-tag">${l.tag}</span>
+       <span style="flex:1">${l.title.split("—")[0].trim()}</span>
+       ${completed.includes(l.id) ? "<span class='done'>✓</span>" : ""}
+     </div>`).join("");
+   const pct = lessons.length ? Math.round(completed.length / lessons.length * 100) : 0;
+   document.getElementById("progressFill").style.width = pct + "%";
+   document.getElementById("progressLabel").textContent = `${completed.length} / ${lessons.length} 完成`;
+ }
+ 
+ function renderLesson() {
+   if (!dbReady) return;
+   const l = lessons[current], c = l.content, tabs = l.tabs;
+   let html = `<div class="lesson-header">
+     <div class="lesson-tag">${l.tag}</div>
+     <div class="lesson-title">${l.title}</div>
+     <div class="lesson-desc">${l.desc}</div>
+   </div>
+   <div class="tab-row">${tabs.map((t, i) => `<div class="tab${i === activeTab ? " active" : ""}" onclick="switchTab(${i})">${t}</div>`).join("")}</div>`;
+ 
+   if (activeTab === 0) {
+     html += '<div class="section"><div class="section-title">语法</div><div class="syntax-block"><pre>' + c.syntax + '</pre></div><div class="explanation">' + c.explanation + '</div></div>';
+   } else if (activeTab === 1 && c.sampleData && c.sampleData.length) {
+     if (l.id === "join") {
+       html += '<div class="section"><div class="section-title">参考数据表</div><div class="multi-table">';
+       html += '<div><div class="mini-title">users 表</div><div class="table-wrap"><table><tr><th>id</th><th>name</th></tr><tr><td>1</td><td>Alice</td></tr><tr><td>2</td><td>Bob</td></tr><tr><td>3</td><td>Charlie</td></tr></table></div></div>';
+       html += '<div><div class="mini-title">orders 表</div><div class="table-wrap"><table><tr><th>id</th><th>user_id</th><th>amount</th></tr><tr><td>1</td><td>1</td><td>250</td></tr><tr><td>2</td><td>1</td><td>180</td></tr><tr><td>3</td><td>2</td><td>320</td></tr></table></div></div>';
+       html += '</div></div>';
+     } else {
+       const cols = Object.keys(c.sampleData[0]);
+       html += '<div class="section"><div class="section-title">' + tabs[1] + '</div><div class="table-wrap"><table>';
+       html += '<tr>' + cols.map(k => '<th>' + k + '</th>').join("") + '</tr>';
+       html += c.sampleData.map(r => '<tr>' + cols.map(k => '<td>' + (typeof r[k] === "number" ? r[k].toLocaleString() : r[k]) + '</td>').join("") + '</tr>').join("");
+       html += '</table></div></div>';
+     }
+   } else {
+     html += '<div class="section"><div class="section-title">练习题</div>';
+     c.exercises.forEach((ex, i) => {
+       html += '<div class="ex-block">' +
+         '<div class="ex-num">第 ' + (i + 1) + ' 题</div>' +
+         '<div class="ex-prompt">' + ex.prompt + '</div>' +
+         '<textarea class="sql-editor" id="ed' + i + '" placeholder="在这里输入 SQL..."></textarea>' +
+         '<div class="btn-row">' +
+         '<button class="btn btn-primary" onclick="check(' + i + ')">执行并检查</button>' +
+         '<button class="btn btn-ghost btn-sm" onclick="showExpected(' + i + ')">查看预期结果</button>' +
+         '<button class="hint-btn" onclick="toggleHint(\'h' + i + '\')">显示提示</button>' +
+         '<span id="status' + i + '" style="margin-left:auto;font-size:12px;color:var(--text3)"></span>' +
+         '</div>' +
+         '<div class="hint-box" id="h' + i + '">' + ex.hint + '</div>' +
+         '<div class="result-box" id="r' + i + '"></div></div>';
+     });
+     html += '</div>';
+   }
+ 
+   html += '<div class="lesson-nav">' +
+     '<button class="nav-btn" onclick="setLesson(' + (current - 1) + ')" ' + (current === 0 ? 'disabled' : '') + '>← 上一课</button>' +
+     '<span style="font-size:12px;color:var(--text3)">' + (current + 1) + ' / ' + lessons.length + '</span>' +
+     '<button class="nav-btn nav-btn-primary" onclick="setLesson(' + (current + 1) + ')" ' + (current === lessons.length - 1 ? 'disabled' : '') + '>下一课 →</button>' +
+     '</div>';
+   document.getElementById("mainContent").innerHTML = html;
+ }
+ 
+ // ====== 练习系统 ======
+ function check(i) {
+   const ex = lessons[current].content.exercises[i];
+   const sql = document.getElementById("ed" + i).value.trim();
+   const el = document.getElementById("r" + i);
+   el.style.display = "block";
+   if (!sql) { el.className = "result-box result-err"; el.innerHTML = "请先输入 SQL 语句。"; return; }
+ 
+   let userResult;
+   try {
+     userResult = execSQL(sql);
+   } catch (e) {
+     el.className = "result-box result-err";
+     el.innerHTML = "<div class='result-status'>⚠️ SQL 语法错误</div><div style=\"font-family:var(--mono);font-size:12.5px;margin-top:4px\">" + String(e.message).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;") + "</div>";
+     showStatus(i, "语法错误", true);
+     return;
+   }
+ 
+   let expResult;
+   try { expResult = execSQL(ex.answer); } catch (e) {
+     el.className = "result-box result-err";
+     el.innerHTML = "<div class='result-status'>⚠️ 参考答案执行异常</div>";
+     return;
+   }
+ 
+   const ok = compareResults(userResult, expResult);
+   el.className = "result-box " + (ok ? "result-ok" : "result-err");
+ 
+   let html = "";
+   if (ok) {
+     html += "<div class='result-status'>✅ 正确！</div><div style='margin-top:6px'>查询结果：</div><div class='result-table-wrap'><div id='ut" + i + "'></div></div>";
+     showStatus(i, "已通过", false);
+     if (!completed.includes(lessons[current].id)) {
+       completed.push(lessons[current].id);
+       try { localStorage.setItem("sql_done", JSON.stringify(completed)); } catch(e) {}
+       renderNav();
+     }
+   } else {
+     html += "<div class='result-status'>❌ 结果不对，再想想。</div><div class='result-compare'>";
+     html += "<div class='result-side'><div class='result-side-title'>你的结果</div><div id='ut" + i + "'></div></div>";
+     html += "<div class='result-side'><div class='result-side-title'>预期结果</div><div id='et" + i + "'></div></div></div>";
+     showStatus(i, "未通过", true);
+   }
+   el.innerHTML = html;
+   renderTable(document.getElementById("ut" + i), userResult.columns, userResult.values);
+   if (!ok) renderTable(document.getElementById("et" + i), expResult.columns, expResult.values);
+ }
+ 
+ function showExpected(i) {
+   const ex = lessons[current].content.exercises[i];
+   const el = document.getElementById("r" + i);
+   el.style.display = "block";
+   try {
+     const r = execSQL(ex.answer);
+     el.className = "result-box result-ok";
+     el.innerHTML = "<div class='result-status'>📋 预期结果</div><div class='result-table-wrap'><div id='es" + i + "'></div></div>";
+     renderTable(document.getElementById("es" + i), r.columns, r.values);
+   } catch (e) {
+     el.className = "result-box result-err";
+     el.innerHTML = "<div class='result-status'>⚠️ 参考答案执行异常</div>";
+   }
+ }
+ function showStatus(i, t, err) {
+   const el = document.getElementById("status" + i);
+   if (el) { el.textContent = t; el.style.color = err ? "var(--danger)" : "var(--success)"; }
+ }
+ 
+ // ====== 快捷键 ======
+ document.addEventListener("keydown", function(e) {
+   if (e.target.tagName === "TEXTAREA" || e.target.tagName === "INPUT") return;
+   if (e.key === "ArrowLeft" && current > 0) setLesson(current - 1);
+   if (e.key === "ArrowRight" && current < lessons.length - 1) setLesson(current + 1);
+ });
+ 
+ initDB();
+ </script>
+ </body>
+ </html>
